@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Expediente de {{ a.usuario.nombre }}{% endblock %}
+{% block contenido %}
+<a href="/admin/alumnos" class="text-sm">← Alumnos</a>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1>{{ a.usuario.nombre }} {% if not a.usuario.activo %}<span class="badge-rojo align-middle">Cuenta inactiva</span>{% endif %}</h1>
+    <p class="text-sm text-slate-600">{{ a.matricula }} · {{ a.carrera }} · {{ a.usuario.email }}{% if a.telefono %} · {{ a.telefono }}{% endif %}</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="/admin/alumnos/{{ a.id }}/editar" class="btn-sec">Editar</a>
+    <form method="post" action="/admin/alumnos/{{ a.id }}/estado"
+          data-confirm="{{ '¿Reactivar la cuenta de ' ~ a.usuario.nombre ~ '?' if not a.usuario.activo else '¿Desactivar la cuenta de ' ~ a.usuario.nombre ~ '? No podrá iniciar sesión; su expediente se conserva.' }}">
+      {{ m.csrf_input(csrf) }}
+      <button class="{{ 'btn-ok' if not a.usuario.activo else 'btn-peligro' }}">{{ 'Activar' if not a.usuario.activo else 'Desactivar' }}</button>
+    </form>
+  </div>
+</div>
+
+<div class="mb-6 grid gap-4 md:grid-cols-3">
+  <div class="card">
+    <div class="text-xs uppercase tracking-wide text-slate-500">Grupo</div>
+    <div class="text-lg font-semibold">{{ a.grupo.nombre if a.grupo else 'Sin grupo' }}</div>
+    <div class="mt-2 text-xs uppercase tracking-wide text-slate-500">Profesor asesor</div>
+    <div class="font-medium">{{ a.profesor.nombre if a.profesor else 'Sin asignar' }}</div>
+  </div>
+  <div class="card">
+    <div class="mb-1 text-xs uppercase tracking-wide text-slate-500">Avance documental</div>
+    {{ m.barra(exp.avance) }}
+    <div class="mt-3 flex flex-wrap gap-1.5 text-xs">
+      <span class="badge-verde">{{ exp.contar('aprobado') }} aprobados</span>
+      <span class="badge-azul">{{ exp.contar('en_revision') }} en revisión</span>
+      <span class="badge-ambar">{{ exp.contar('correccion') }} corrección</span>
+      <span class="badge-gris">{{ exp.contar('pendiente') }} pendientes</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="mb-1 text-xs uppercase tracking-wide text-slate-500">Proyecto de estadía</div>
+    {% if proyecto %}
+      <div class="font-medium">{{ proyecto.titulo }}</div>
+      <div class="mt-1 flex items-center gap-2 text-sm">{{ m.estado(proyecto.estado) }} <span class="text-slate-500">v{{ proyecto.version }} · {{ proyecto.creado_en|fecha('%d/%m/%Y') }}</span></div>
+      <div class="mt-2 flex gap-1">{{ m.acciones_archivo('/archivos/proyecto/' ~ proyecto.id) }}</div>
+      <p class="ayuda">La revisión del proyecto la realiza el profesor asesor.</p>
+    {% else %}
+      <div class="text-sm text-slate-500">Sin entregas.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% for cat, items in exp.categorias %}
+<h2 class="mb-2 mt-6">{{ cat.nombre }}</h2>
+<div class="tabla-wrap">
+  <table class="tabla">
+    <thead><tr><th>Documento</th><th>Estado</th><th>Última entrega</th><th>Observación</th><th></th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+    {% for it in items %}
+      <tr>
+        <td><div class="font-medium">{{ it.requisito.nombre }}</div>
+          <div class="text-xs text-slate-500">{{ 'General' if it.requisito.tipo == 'general' else 'Específico de grupo' }}{% if it.historial|length > 1 %} · {{ it.historial|length }} versiones{% endif %}</div></td>
+        <td>{{ m.estado(it.estado) }}</td>
+        <td class="whitespace-nowrap text-slate-600">{{ it.ultima.creado_en|fecha if it.ultima else '—' }}</td>
+        <td class="max-w-xs text-xs text-slate-600">{{ it.observacion or '' }}</td>
+        <td class="whitespace-nowrap text-right">
+          {% if it.ultima %}
+            <a href="/admin/entregas/{{ it.ultima.id }}" class="{{ 'btn-primario' if it.estado == 'en_revision' else 'btn-sec' }} btn-sm">{{ 'Revisar' if it.estado == 'en_revision' else 'Ver' }}</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card text-sm text-slate-500">No hay documentos requeridos configurados para este alumno. <a href="/admin/requisitos">Configurar requisitos</a>.</div>
+{% endfor %}
+
+{% if exp.historicos %}
+<details class="card mt-6">
+  <summary class="cursor-pointer font-medium text-inst-800">Entregas de requisitos que ya no aplican ({{ exp.historicos|length }})</summary>
+  <p class="ayuda mb-3">Se conservan como historial: el requisito fue desactivado o el alumno cambió de grupo.</p>
+  <ul class="divide-y divide-slate-100 text-sm">
+    {% for e in exp.historicos %}
+    <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+      <span>{{ e.requisito.nombre }} · v{{ e.version }} · {{ e.creado_en|fecha }}</span>
+      <span class="flex items-center gap-2">{{ m.estado(e.estado) }} <a href="/admin/entregas/{{ e.id }}" class="btn-sec btn-sm">Ver</a></span>
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
+{% endblock %}

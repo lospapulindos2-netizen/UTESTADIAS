@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Panel administrativo{% endblock %}
+{% block contenido %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <h1>Panel administrativo</h1>
+  <div class="flex gap-2">
+    <a href="/admin/alumnos/nuevo" class="btn-sec">+ Alumno</a>
+    <a href="/admin/revision" class="btn-primario">Revisar documentos ({{ totales.en_revision }})</a>
+  </div>
+</div>
+
+<div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+  <a href="/admin/alumnos" class="kpi"><span class="kpi-num">{{ total_alumnos }}</span><span class="kpi-txt">Alumnos activos</span></a>
+  <a href="/admin/grupos" class="kpi"><span class="kpi-num">{{ total_grupos }}</span><span class="kpi-txt">Grupos</span></a>
+  <a href="/admin/alumnos?estado=completo" class="kpi"><span class="kpi-num text-emerald-700">{{ completos }}</span><span class="kpi-txt">Expedientes completos</span></a>
+  <a href="/admin/alumnos?estado=incompleto" class="kpi"><span class="kpi-num text-amber-600">{{ incompletos }}</span><span class="kpi-txt">Expedientes incompletos</span></a>
+</div>
+
+<div class="mb-6 grid gap-4 lg:grid-cols-3">
+  <div class="card lg:col-span-1">
+    <h2 class="mb-4">Documentos</h2>
+    <dl class="space-y-3 text-sm">
+      <div class="flex items-center justify-between"><dt>{{ m.estado('pendiente') }} sin entregar</dt><dd class="text-lg font-semibold">{{ totales.pendiente }}</dd></div>
+      <div class="flex items-center justify-between"><dt><a href="/admin/revision" class="no-underline">{{ m.estado('en_revision') }}</a></dt><dd class="text-lg font-semibold">{{ totales.en_revision }}</dd></div>
+      <div class="flex items-center justify-between"><dt>{{ m.estado('correccion') }}</dt><dd class="text-lg font-semibold">{{ totales.correccion }}</dd></div>
+      <div class="flex items-center justify-between"><dt>{{ m.estado('aprobado') }}</dt><dd class="text-lg font-semibold">{{ totales.aprobado }}</dd></div>
+    </dl>
+    {% if sin_grupo or sin_profesor %}
+    <div class="mt-5 space-y-1 border-t border-slate-200 pt-4 text-sm">
+      {% if sin_grupo %}<a href="/admin/alumnos?grupo=-1" class="block">⚠ {{ sin_grupo }} alumno(s) sin grupo</a>{% endif %}
+      {% if sin_profesor %}<a href="/admin/alumnos?profesor=-1" class="block">⚠ {{ sin_profesor }} alumno(s) sin profesor asignado</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card lg:col-span-2">
+    <h2 class="mb-4">Avance por grupo</h2>
+    {% if por_grupo %}
+    <ul class="divide-y divide-slate-100">
+      {% for g in por_grupo %}
+      <li class="flex flex-wrap items-center gap-3 py-2.5">
+        <a href="/admin/alumnos?grupo={{ g.grupo.id }}" class="w-40 font-medium">{{ g.grupo.nombre }}</a>
+        <span class="w-24 text-xs text-slate-500">{{ g.alumnos }} alumno(s)</span>
+        <div class="min-w-[10rem] flex-1">{{ m.barra(g.avance) }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      <p class="text-sm text-slate-500">Aún no hay grupos. <a href="/admin/grupos">Crear el primero</a>.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

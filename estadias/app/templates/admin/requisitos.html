@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Documentos requeridos{% endblock %}
+{% block contenido %}
+<div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+  <h1>Documentos requeridos</h1>
+  <a href="/admin/requisitos/nuevo" class="btn-primario">+ Nuevo documento</a>
+</div>
+<p class="mb-5 max-w-3xl text-sm text-slate-600">
+  Los documentos <span class="badge-azul">General</span> se piden a todos los alumnos. Los <span class="badge-ambar">Específico</span> solo a los grupos indicados.
+  El expediente de cada alumno combina ambos automáticamente. Desactivar un documento no borra las entregas anteriores.
+</p>
+
+<div class="grid gap-6 lg:grid-cols-4">
+  <div class="space-y-4 lg:col-span-1">
+    <form method="post" action="/admin/categorias" class="card space-y-3">
+      {{ m.csrf_input(csrf) }}
+      <h2>Nueva categoría</h2>
+      <div><label class="label" for="cat-nombre">Nombre *</label><input class="input" id="cat-nombre" name="nombre" required placeholder="Ej. Documentación personal"></div>
+      <div><label class="label" for="cat-orden">Orden</label><input class="input" id="cat-orden" name="orden" type="number" value="{{ categorias|length + 1 }}"></div>
+      <button class="btn-primario w-full">Crear categoría</button>
+    </form>
+  </div>
+
+  <div class="space-y-5 lg:col-span-3">
+    {% for c in categorias %}
+    <section class="card {{ 'opacity-60' if not c.activo }}">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2>{{ c.orden }}. {{ c.nombre }} {% if not c.activo %}<span class="badge-rojo">Inactiva</span>{% endif %}</h2>
+        <div class="flex flex-wrap items-center gap-2">
+          <details class="relative">
+            <summary class="btn-sec btn-sm list-none">Editar</summary>
+            <form method="post" action="/admin/categorias/{{ c.id }}" class="absolute right-0 z-10 mt-1 w-72 space-y-2 rounded-md border bg-white p-3 shadow-lg">
+              {{ m.csrf_input(csrf) }}
+              <input class="input" name="nombre" value="{{ c.nombre }}" required>
+              <input class="input" name="orden" type="number" value="{{ c.orden }}">
+              <button class="btn-primario btn-sm">Guardar</button>
+            </form>
+          </details>
+          <form method="post" action="/admin/categorias/{{ c.id }}/estado"
+                data-confirm="{{ '¿Desactivar la categoría ' ~ c.nombre ~ '? Sus documentos dejarán de pedirse.' if c.activo else '¿Reactivar la categoría ' ~ c.nombre ~ '?' }}">
+            {{ m.csrf_input(csrf) }}
+            <button class="btn-sm {{ 'btn-sec' if c.activo else 'btn-ok' }}">{{ 'Desactivar' if c.activo else 'Activar' }}</button>
+          </form>
+          <a href="/admin/requisitos/nuevo?categoria={{ c.id }}" class="btn-primario btn-sm">+ Documento</a>
+        </div>
+      </div>
+      {% if c.requisitos %}
+      <ul class="divide-y divide-slate-100">
+        {% for r in c.requisitos|sort(attribute='nombre') %}
+        <li class="flex flex-wrap items-center justify-between gap-2 py-2.5 {{ 'opacity-50' if not r.activo }}">
+          <div>
+            <span class="font-medium">{{ r.nombre }}</span>
+            {% if r.tipo == 'general' %}<span class="badge-azul">General</span>
+            {% else %}<span class="badge-ambar">Específico: {{ r.grupos|map(attribute='nombre')|join(', ') }}</span>{% endif %}
+            {% if not r.activo %}<span class="badge-rojo">Inactivo</span>{% endif %}
+            {% if r.descripcion %}<div class="text-xs text-slate-500">{{ r.descripcion }}</div>{% endif %}
+          </div>
+          <div class="flex gap-2">
+            <a href="/admin/requisitos/{{ r.id }}/editar" class="btn-sec btn-sm">Editar</a>
+            <form method="post" action="/admin/requisitos/{{ r.id }}/estado"
+                  data-confirm="{{ '¿Desactivar «' ~ r.nombre ~ '»? Dejará de pedirse; las entregas anteriores se conservan.' if r.activo else '¿Reactivar «' ~ r.nombre ~ '»?' }}">
+              {{ m.csrf_input(csrf) }}
+              <button class="btn-sm {{ 'btn-sec' if r.activo else 'btn-ok' }}">{{ 'Desactivar' if r.activo else 'Activar' }}</button>
+            </form>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-slate-500">Sin documentos en esta categoría.</p>
+      {% endif %}
+    </section>
+    {% else %}
+    <div class="card text-sm text-slate-500">Crea primero una categoría (por ejemplo «Documentación personal»).</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

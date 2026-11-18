@@ -1,0 +1,30 @@
+{% macro estado(clave) -%}
+  <span class="{{ COLOR_ESTADO.get(clave, 'badge-gris') }}">{{ ESTADOS.get(clave, clave) }}</span>
+{%- endmacro %}
+
+{% macro barra(valor) -%}
+  <div class="flex items-center gap-2">
+    <progress class="barra" max="100" value="{{ valor }}" aria-label="Avance {{ valor }}%"></progress>
+    <span class="w-10 text-right text-xs font-medium text-slate-600">{{ valor }}%</span>
+  </div>
+{%- endmacro %}
+
+{% macro csrf_input(csrf) -%}
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+{%- endmacro %}
+
+{# Visor de archivo: PDF en iframe, imágenes como <img> #}
+{% macro visor(url, mime) -%}
+  {% if mime == 'application/pdf' %}
+    <iframe src="{{ url }}" class="visor" title="Vista previa del documento"></iframe>
+  {% else %}
+    <div class="flex justify-center rounded-md border border-slate-300 bg-slate-50 p-2">
+      <img src="{{ url }}" alt="Vista previa" class="max-h-[75vh] object-contain">
+    </div>
+  {% endif %}
+{%- endmacro %}
+
+{% macro acciones_archivo(url) -%}
+  <a href="{{ url }}" target="_blank" rel="noopener" class="btn-sec btn-sm">Ver</a>
+  <a href="{{ url }}?descargar=1" class="btn-sec btn-sm">Descargar</a>
+{%- endmacro %}

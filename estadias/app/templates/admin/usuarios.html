@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Profesores y administradores{% endblock %}
+{% block contenido %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <h1>Profesores y administradores</h1>
+  <a href="/admin/usuarios/nuevo" class="btn-primario">+ Nueva cuenta</a>
+</div>
+<input class="input mb-3 max-w-xs" type="search" placeholder="Búsqueda rápida…" data-filtro="#tabla-usuarios">
+<div class="tabla-wrap">
+  <table class="tabla" id="tabla-usuarios">
+    <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Alumnos asignados</th><th>Estado</th><th></th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+    {% for u in usuarios %}
+      <tr class="{{ 'opacity-60' if not u.activo }}">
+        <td class="font-medium">{{ u.nombre }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ ROLES[u.rol] }}</td>
+        <td>{% if u.rol == 'profesor' %}<a href="/admin/alumnos?profesor={{ u.id }}">{{ u.alumnos_asignados|length }}</a>{% else %}—{% endif %}</td>
+        <td>{% if u.activo %}<span class="badge-verde">Activa</span>{% else %}<span class="badge-rojo">Inactiva</span>{% endif %}</td>
+        <td class="whitespace-nowrap text-right">
+          <a href="/admin/usuarios/{{ u.id }}/editar" class="btn-sec btn-sm">Editar</a>
+          {% if u.id != usuario.id %}
+          <form method="post" action="/admin/usuarios/{{ u.id }}/estado" class="inline"
+                data-confirm="¿{{ 'Desactivar' if u.activo else 'Activar' }} la cuenta de {{ u.nombre }}?">
+            {{ m.csrf_input(csrf) }}
+            <button class="btn-sm {{ 'btn-peligro' if u.activo else 'btn-ok' }}">{{ 'Desactivar' if u.activo else 'Activar' }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

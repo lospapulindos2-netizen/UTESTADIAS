@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Bitácora{% endblock %}
+{% block contenido %}
+<h1 class="mb-1">Bitácora de actividades</h1>
+<p class="mb-4 text-sm text-slate-500">Últimas 300 acciones importantes registradas.</p>
+<div class="mb-3 flex flex-wrap gap-2">
+  <input class="input max-w-xs" type="search" placeholder="Búsqueda rápida…" data-filtro="#tabla-bitacora">
+  <form method="get"><select class="input inline-block w-auto" name="accion">
+    <option value="">Todas las acciones</option>
+    {% for a, t in [('login','Inicios de sesión'),('documento','Documentos'),('proyecto','Proyectos'),('alumno','Alumnos'),('usuario','Usuarios'),('requisito','Requisitos'),('grupo','Grupos'),('archivo','Descargas')] %}
+      <option value="{{ a }}" {% if a == accion %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select> <button class="btn-sec">Filtrar</button></form>
+</div>
+<div class="tabla-wrap">
+  <table class="tabla" id="tabla-bitacora">
+    <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>IP</th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for b in registros %}
+      <tr>
+        <td class="whitespace-nowrap">{{ b.creado_en|fecha }}</td>
+        <td>{{ b.usuario.nombre if b.usuario else '—' }}</td>
+        <td><code class="text-xs">{{ b.accion }}</code></td>
+        <td class="text-xs text-slate-600">{{ b.detalle or '' }}</td>
+        <td class="text-xs text-slate-500">{{ b.ip or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

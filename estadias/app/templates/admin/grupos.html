@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Grupos{% endblock %}
+{% block contenido %}
+<h1 class="mb-5">Grupos</h1>
+<div class="grid gap-6 lg:grid-cols-3">
+  <form method="post" action="/admin/grupos" class="card h-fit space-y-3">
+    {{ m.csrf_input(csrf) }}
+    <h2>Nuevo grupo</h2>
+    <div><label class="label" for="nombre">Nombre *</label><input class="input" id="nombre" name="nombre" required placeholder="Ej. Grupo A"></div>
+    <div><label class="label" for="descripcion">Descripción</label><input class="input" id="descripcion" name="descripcion"></div>
+    <button class="btn-primario">Crear grupo</button>
+  </form>
+
+  <div class="space-y-3 lg:col-span-2">
+    {% for g in grupos %}
+    <details class="card {{ 'opacity-60' if not g.activo }}">
+      <summary class="flex cursor-pointer flex-wrap items-center justify-between gap-2">
+        <span><b>{{ g.nombre }}</b> {% if not g.activo %}<span class="badge-rojo">Inactivo</span>{% endif %}
+          <span class="text-sm text-slate-500">· {{ g.descripcion or '' }}</span></span>
+        <span class="flex items-center gap-2">
+          <a href="/admin/alumnos?grupo={{ g.id }}" class="btn-sec btn-sm">{{ g.alumnos|length }} alumno(s)</a>
+          <span class="text-xs text-inst-600">Editar ▾</span>
+        </span>
+      </summary>
+      <div class="mt-4 flex flex-wrap items-end gap-2 border-t border-slate-100 pt-4">
+        <form method="post" action="/admin/grupos/{{ g.id }}" class="flex flex-1 flex-wrap items-end gap-2">
+          {{ m.csrf_input(csrf) }}
+          <div><label class="label">Nombre</label><input class="input" name="nombre" value="{{ g.nombre }}" required></div>
+          <div class="flex-1"><label class="label">Descripción</label><input class="input" name="descripcion" value="{{ g.descripcion or '' }}"></div>
+          <button class="btn-primario">Guardar</button>
+        </form>
+        <form method="post" action="/admin/grupos/{{ g.id }}/estado"
+              data-confirm="{{ '¿Desactivar el grupo ' ~ g.nombre ~ '? Ya no aparecerá para asignaciones; los alumnos y su historial se conservan.' if g.activo else '¿Reactivar el grupo ' ~ g.nombre ~ '?' }}">
+          {{ m.csrf_input(csrf) }}
+          <button class="{{ 'btn-peligro' if g.activo else 'btn-ok' }}">{{ 'Desactivar' if g.activo else 'Activar' }}</button>
+        </form>
+      </div>
+    </details>
+    {% else %}
+    <div class="card text-sm text-slate-500">Aún no hay grupos.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

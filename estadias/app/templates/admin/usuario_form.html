@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}{{ 'Editar cuenta' if u else 'Nueva cuenta' }}{% endblock %}
+{% block contenido %}
+<a href="/admin/usuarios" class="text-sm">← Volver</a>
+<h1 class="mb-5">{{ 'Editar cuenta' if u else 'Nueva cuenta de profesor o administrador' }}</h1>
+<form method="post" class="card max-w-xl space-y-4">
+  {{ m.csrf_input(csrf) }}
+  {% if error %}<div class="alerta-error !mb-0">{{ error }}</div>{% endif %}
+  <div><label class="label" for="nombre">Nombre completo *</label>
+    <input class="input" id="nombre" name="nombre" required value="{{ d.nombre or '' }}"></div>
+  <div><label class="label" for="email">Correo (usuario de acceso) *</label>
+    <input class="input" id="email" name="email" type="email" required value="{{ d.email or '' }}"></div>
+  {% if not u %}
+  <div><span class="label">Rol *</span>
+    <div class="flex gap-4 text-sm">
+      <label class="flex items-center gap-1.5"><input type="radio" name="rol" value="profesor" {% if d.rol != 'admin' %}checked{% endif %}> Profesor</label>
+      <label class="flex items-center gap-1.5"><input type="radio" name="rol" value="admin" {% if d.rol == 'admin' %}checked{% endif %}> Administrador</label>
+    </div></div>
+  {% else %}
+  <p class="text-sm text-slate-600">Rol: <b>{{ ROLES[u.rol] }}</b></p>
+  {% endif %}
+  <div><label class="label" for="password">{{ 'Nueva contraseña (opcional)' if u else 'Contraseña inicial (opcional)' }}</label>
+    <input class="input max-w-sm" id="password" name="password" type="text" autocomplete="new-password">
+    <p class="ayuda">{{ 'Déjala vacía para no cambiarla.' if u else 'Déjala vacía para generar una automática. Se mostrará una sola vez.' }}</p></div>
+  <div class="flex gap-2"><button class="btn-primario">Guardar</button><a href="/admin/usuarios" class="btn-sec">Cancelar</a></div>
+</form>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Revisar {{ e.requisito.nombre }}{% endblock %}
+{% block contenido %}
+{% set url = '/archivos/entrega/' ~ e.id %}
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <a href="/admin/revision" class="text-sm">← Bandeja</a>
+    <h1>{{ e.requisito.nombre }} <span class="text-base font-normal text-slate-500">v{{ e.version }}</span></h1>
+    <p class="text-sm text-slate-600">
+      <a href="/admin/alumnos/{{ e.alumno.id }}">{{ e.alumno.usuario.nombre }}</a> · {{ e.alumno.matricula }}
+      · {{ e.alumno.grupo.nombre if e.alumno.grupo else 'Sin grupo' }}
+    </p>
+  </div>
+  <div class="flex items-center gap-2">{{ m.estado(e.estado) }} {{ m.acciones_archivo(url) }}</div>
+</div>
+
+<div class="grid gap-5 lg:grid-cols-3">
+  <div class="lg:col-span-2">
+    {{ m.visor(url, e.mime) }}
+    <p class="mt-2 text-xs text-slate-500">{{ e.nombre_original }} · {{ e.tamano|tamano }} · entregado {{ e.creado_en|fecha }}</p>
+  </div>
+
+  <div class="space-y-5">
+    {% if es_ultima %}
+    <form method="post" action="/admin/entregas/{{ e.id }}/revisar" class="card space-y-3" data-revision>
+      {{ m.csrf_input(csrf) }}
+      <input type="hidden" name="siguiente" value="{{ siguiente or 0 }}">
+      <h2>Dictamen</h2>
+      <div>
+        <label class="label" for="observacion">Observación</label>
+        <textarea class="input" id="observacion" name="observacion" rows="4" placeholder="Obligatoria si pides corrección: explica qué debe cambiar el alumno."></textarea>
+        <p data-obs-aviso class="ayuda hidden !text-rose-600">Escribe qué debe corregir el alumno.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button name="resultado" value="aprobado" class="btn-ok flex-1">✓ Aprobar</button>
+        <button name="resultado" value="correccion" class="btn-ambar flex-1">↺ Requiere corrección</button>
+      </div>
+      {% if siguiente %}<p class="ayuda">Al guardar pasarás al siguiente documento pendiente.</p>{% endif %}
+    </form>
+    {% else %}
+    <div class="alerta-ok">Esta es una versión anterior. <a href="/admin/entregas/{{ historial[0].id }}">Ir a la versión actual</a>.</div>
+    {% endif %}
+
+    <div class="card">
+      <h2 class="mb-3">Historial de versiones</h2>
+      <ol class="space-y-4 text-sm">
+        {% for h in historial %}
+        <li class="border-l-2 {{ 'border-inst-500' if h.id == e.id else 'border-slate-200' }} pl-3">
+          <div class="flex items-center justify-between gap-2">
+            <a href="/admin/entregas/{{ h.id }}" class="font-medium">Versión {{ h.version }}</a>{{ m.estado(h.estado) }}
+          </div>
+          <div class="text-xs text-slate-500">{{ h.creado_en|fecha }} · {{ h.nombre_original }}</div>
+          {% for r in h.revisiones %}
+            <div class="mt-1 rounded bg-slate-50 p-2 text-xs"><b>{{ ESTADOS[r.resultado] }}</b> por {{ r.revisor.nombre }} · {{ r.creado_en|fecha }}{% if r.observacion %}<br>{{ r.observacion }}{% endif %}</div>
+          {% endfor %}
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Mi panel{% endblock %}
+{% block contenido %}
+<h1 class="mb-1">Hola, {{ a.usuario.nombre.split(' ')[0] }}</h1>
+<p class="mb-6 text-sm text-slate-600">{{ a.matricula }} · {{ a.carrera }} · {{ a.grupo.nombre if a.grupo else 'Sin grupo asignado' }}</p>
+
+<div class="mb-6 grid gap-4 lg:grid-cols-3">
+  <div class="card lg:col-span-2">
+    <div class="mb-2 flex items-center justify-between">
+      <h2>Avance documental</h2>
+      <a href="/alumno/expediente" class="btn-primario btn-sm">Ir a mi expediente</a>
+    </div>
+    <div class="mb-1 text-4xl font-bold text-inst-800">{{ exp.avance }}%</div>
+    {{ m.barra(exp.avance) }}
+    <div class="mt-4 grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+      <div class="rounded-md bg-slate-50 p-3"><div class="text-2xl font-semibold">{{ exp.contar('pendiente') }}</div><div class="text-xs text-slate-500">Por entregar</div></div>
+      <div class="rounded-md bg-amber-50 p-3"><div class="text-2xl font-semibold text-amber-700">{{ exp.contar('correccion') }}</div><div class="text-xs text-slate-500">Requieren corrección</div></div>
+      <div class="rounded-md bg-sky-50 p-3"><div class="text-2xl font-semibold text-sky-700">{{ exp.contar('en_revision') }}</div><div class="text-xs text-slate-500">En revisión</div></div>
+      <div class="rounded-md bg-emerald-50 p-3"><div class="text-2xl font-semibold text-emerald-700">{{ exp.contar('aprobado') }}</div><div class="text-xs text-slate-500">Aprobados</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="mb-2">Proyecto de estadía</h2>
+    {% if proyecto %}
+      <div class="font-medium">{{ proyecto.titulo }}</div>
+      <div class="mt-1">{{ m.estado(proyecto.estado) }} <span class="text-xs text-slate-500">versión {{ proyecto.version }}</span></div>
+    {% else %}
+      <div class="mb-1">{{ m.estado('pendiente') }}</div>
+      <p class="text-sm text-slate-500">Aún no entregas tu proyecto.</p>
+    {% endif %}
+    <p class="mt-2 text-sm text-slate-600">Profesor asesor: <b>{{ a.profesor.nombre if a.profesor else 'por asignar' }}</b></p>
+    <a href="/alumno/proyecto" class="btn-sec btn-sm mt-3">Ver proyecto</a>
+  </div>
+</div>
+
+<div class="grid gap-4 lg:grid-cols-2">
+  <div class="card">
+    <h2 class="mb-3">Pendientes de atender</h2>
+    {% set por_hacer = exp.items|selectattr('estado', 'in', ['pendiente', 'correccion'])|list %}
+    {% if por_hacer %}
+    <ul class="divide-y divide-slate-100 text-sm">
+      {% for it in por_hacer %}
+      <li class="flex items-center justify-between gap-2 py-2">
+        <a href="/alumno/expediente#req-{{ it.requisito.id }}">{{ it.requisito.nombre }}</a>{{ m.estado(it.estado) }}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="text-sm text-slate-500">No tienes documentos por entregar o corregir.</p>{% endif %}
+  </div>
+  <div class="card">
+    <h2 class="mb-3">Observaciones recientes</h2>
+    {% if observaciones %}
+    <ul class="space-y-3 text-sm">
+      {% for nombre, rev in observaciones %}
+      <li class="rounded-md border-l-4 {{ 'border-emerald-400' if rev.resultado == 'aprobado' else 'border-amber-400' }} bg-slate-50 p-3">
+        <div class="flex justify-between gap-2"><b>{{ nombre }}</b><span class="text-xs text-slate-500">{{ rev.creado_en|fecha }}</span></div>
+        <div class="text-slate-700">{{ rev.observacion }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="text-sm text-slate-500">Sin observaciones.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

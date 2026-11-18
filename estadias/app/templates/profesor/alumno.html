@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Proyecto de {{ a.usuario.nombre }}{% endblock %}
+{% block contenido %}
+<a href="/profesor" class="text-sm">← Mis alumnos</a>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1>{{ actual.titulo if actual else 'Proyecto de estadía' }}</h1>
+    <p class="text-sm text-slate-600">{{ a.usuario.nombre }} · {{ a.matricula }} · {{ a.carrera }} · {{ a.grupo.nombre if a.grupo else 'Sin grupo' }} · {{ a.usuario.email }}</p>
+  </div>
+  {% if actual %}<div class="flex items-center gap-2">{{ m.estado(actual.estado) }} {{ m.acciones_archivo('/archivos/proyecto/' ~ actual.id) }}</div>{% endif %}
+</div>
+
+{% if not actual %}
+  <div class="card text-center text-slate-500">El alumno todavía no entrega su proyecto.</div>
+{% else %}
+<div class="grid gap-5 lg:grid-cols-3">
+  <div class="lg:col-span-2">
+    {{ m.visor('/archivos/proyecto/' ~ actual.id, actual.mime) }}
+    <p class="mt-2 text-xs text-slate-500">Versión {{ actual.version }} · {{ actual.nombre_original }} · {{ actual.tamano|tamano }} · {{ actual.creado_en|fecha }}</p>
+  </div>
+  <div class="space-y-5">
+    <form method="post" action="/profesor/proyectos/{{ actual.id }}/revisar" class="card space-y-3" data-revision>
+      {{ m.csrf_input(csrf) }}
+      <h2>Revisión de la versión {{ actual.version }}</h2>
+      {% if actual.estado != 'en_revision' %}<p class="text-xs text-slate-500">Ya tiene dictamen ({{ ESTADOS[actual.estado] }}). Puedes modificarlo si es necesario.</p>{% endif %}
+      <div>
+        <label class="label" for="observacion">Observaciones</label>
+        <textarea class="input" id="observacion" name="observacion" rows="5" placeholder="Obligatorias si solicitas correcciones o rechazas."></textarea>
+        <p data-obs-aviso class="ayuda hidden !text-rose-600">Escribe las observaciones para el alumno.</p>
+      </div>
+      <div class="grid gap-2">
+        <button name="resultado" value="aprobado" class="btn-ok">✓ Aprobar proyecto</button>
+        <button name="resultado" value="correccion" class="btn-ambar">↺ Solicitar correcciones</button>
+        <button name="resultado" value="rechazado" class="btn-peligro">✕ Rechazar</button>
+      </div>
+    </form>
+
+    <div class="card">
+      <h2 class="mb-3">Historial de entregas y revisiones</h2>
+      <ol class="space-y-4 text-sm">
+        {% for p in historial %}
+        <li class="border-l-2 {{ 'border-inst-500' if loop.first else 'border-slate-200' }} pl-3">
+          <div class="flex items-center justify-between gap-2"><a href="/archivos/proyecto/{{ p.id }}" target="_blank" rel="noopener" class="font-medium">Versión {{ p.version }}</a>{{ m.estado(p.estado) }}</div>
+          <div class="text-xs text-slate-500">{{ p.creado_en|fecha }} · {{ p.nombre_original }}</div>
+          {% for r in p.revisiones %}
+            <div class="mt-1 rounded bg-slate-50 p-2 text-xs"><b>{{ ESTADOS[r.resultado] }}</b> · {{ r.creado_en|fecha }}{% if r.observacion %}<br>{{ r.observacion }}{% endif %}</div>
+          {% endfor %}
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

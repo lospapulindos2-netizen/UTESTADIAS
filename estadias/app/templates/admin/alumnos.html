@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Alumnos{% endblock %}
+{% block contenido %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <h1>Alumnos y expedientes</h1>
+  <a href="/admin/alumnos/nuevo" class="btn-primario">+ Nuevo alumno</a>
+</div>
+
+<form method="get" class="mb-4 flex flex-wrap gap-2 [&>select]:w-auto">
+  <input class="input min-w-[14rem] flex-1" type="search" name="q" value="{{ f.q }}" placeholder="Buscar nombre, matrícula o correo">
+  <select class="input" name="grupo">
+    <option value="0">Todos los grupos</option>
+    <option value="-1" {% if f.grupo == -1 %}selected{% endif %}>Sin grupo</option>
+    {% for g in grupos %}<option value="{{ g.id }}" {% if g.id == f.grupo %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+  </select>
+  <select class="input" name="profesor">
+    <option value="0">Todos los profesores</option>
+    <option value="-1" {% if f.profesor == -1 %}selected{% endif %}>Sin profesor</option>
+    {% for p in profesores %}<option value="{{ p.id }}" {% if p.id == f.profesor %}selected{% endif %}>{{ p.nombre }}</option>{% endfor %}
+  </select>
+  <select class="input" name="estado">
+    <option value="">Cualquier avance</option>
+    <option value="completo" {% if f.estado == 'completo' %}selected{% endif %}>Expediente completo</option>
+    <option value="incompleto" {% if f.estado == 'incompleto' %}selected{% endif %}>Expediente incompleto</option>
+  </select>
+  <div class="flex items-center gap-3">
+    <label class="flex items-center gap-1 text-sm"><input type="checkbox" name="inactivos" value="1" {% if f.inactivos %}checked{% endif %}> Inactivos</label>
+    <button class="btn-sec">Filtrar</button>
+  </div>
+</form>
+
+<form method="post" action="/admin/alumnos/asignar" data-confirm="¿Aplicar la asignación a los alumnos seleccionados?">
+  {{ m.csrf_input(csrf) }}
+  <div class="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-inst-100 bg-inst-50 p-3 text-sm">
+    <span class="font-medium text-inst-800">Asignar a seleccionados:</span>
+    <select class="input w-auto" name="grupo_id">
+      <option value="">— grupo sin cambio —</option>
+      <option value="ninguno">Quitar grupo</option>
+      {% for g in grupos %}<option value="{{ g.id }}">{{ g.nombre }}</option>{% endfor %}
+    </select>
+    <select class="input w-auto" name="profesor_id">
+      <option value="">— profesor sin cambio —</option>
+      <option value="ninguno">Quitar profesor</option>
+      {% for p in profesores %}<option value="{{ p.id }}">{{ p.nombre }}</option>{% endfor %}
+    </select>
+    <button class="btn-primario btn-sm">Aplicar</button>
+  </div>
+
+  <div class="tabla-wrap">
+    <table class="tabla" id="tabla-alumnos">
+      <thead><tr>
+        <th class="w-8"><input type="checkbox" data-todos aria-label="Seleccionar todos"></th>
+        <th>Alumno</th><th>Grupo</th><th>Profesor</th><th class="min-w-[10rem]">Avance documental</th><th>Por revisar</th><th></th>
+      </tr></thead>
+      <tbody class="divide-y divide-slate-100">
+      {% for a in alumnos %}{% set r = resumen[a.id] %}
+        <tr class="{{ 'opacity-60' if not a.usuario.activo }}">
+          <td><input type="checkbox" name="ids" value="{{ a.id }}" aria-label="Seleccionar {{ a.usuario.nombre }}"></td>
+          <td>
+            <a href="/admin/alumnos/{{ a.id }}" class="font-medium">{{ a.usuario.nombre }}</a>
+            <div class="text-xs text-slate-500">{{ a.matricula }} · {{ a.carrera }}{% if not a.usuario.activo %} · <b>inactivo</b>{% endif %}</div>
+          </td>
+          <td>{{ a.grupo.nombre if a.grupo else '—' }}</td>
+          <td>{{ a.profesor.nombre if a.profesor else '—' }}</td>
+          <td>{{ m.barra(r.avance) }}<div class="text-xs text-slate-500">{{ r.aprobado }}/{{ r.total }} aprobados</div></td>
+          <td>{% if r.en_revision %}<span class="badge-azul">{{ r.en_revision }}</span>{% else %}—{% endif %}</td>
+          <td class="text-right"><a href="/admin/alumnos/{{ a.id }}" class="btn-sec btn-sm">Expediente</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="py-8 text-center text-slate-500">No hay alumnos con esos filtros.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+<p class="mt-2 text-xs text-slate-500">{{ alumnos|length }} alumno(s).</p>
+{% endblock %}

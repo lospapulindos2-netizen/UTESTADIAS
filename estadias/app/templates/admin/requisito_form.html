@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}{{ 'Editar documento' if r else 'Nuevo documento' }}{% endblock %}
+{% block contenido %}
+<a href="/admin/requisitos" class="text-sm">← Documentos requeridos</a>
+<h1 class="mb-5">{{ 'Editar documento requerido' if r else 'Nuevo documento requerido' }}</h1>
+<form method="post" class="card max-w-2xl space-y-4">
+  {{ m.csrf_input(csrf) }}
+  {% if error %}<div class="alerta-error !mb-0">{{ error }}</div>{% endif %}
+  <div><label class="label" for="nombre">Nombre del documento *</label>
+    <input class="input" id="nombre" name="nombre" required value="{{ d.nombre or '' }}" placeholder="Ej. Carta de aceptación"></div>
+  <div><label class="label" for="descripcion">Instrucciones para el alumno</label>
+    <textarea class="input" id="descripcion" name="descripcion" rows="2" placeholder="Ej. Firmada y sellada por la empresa, en PDF.">{{ d.descripcion or '' }}</textarea></div>
+  <div><label class="label" for="categoria_id">Categoría *</label>
+    <select class="input" id="categoria_id" name="categoria_id" required>
+      <option value="0">Selecciona…</option>
+      {% for c in categorias %}<option value="{{ c.id }}" {% if c.id == d.categoria_id %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+    </select></div>
+  <div>
+    <span class="label">¿Quién debe entregarlo? *</span>
+    <div class="space-y-2 text-sm">
+      <label class="flex items-start gap-2"><input type="radio" name="tipo" value="general" class="mt-1" {% if d.tipo != 'especifico' %}checked{% endif %}>
+        <span><b>Todos los alumnos</b> (documento general)</span></label>
+      <label class="flex items-start gap-2"><input type="radio" name="tipo" value="especifico" class="mt-1" {% if d.tipo == 'especifico' %}checked{% endif %}>
+        <span><b>Solo algunos grupos</b> (documento específico)</span></label>
+    </div>
+  </div>
+  <div id="bloque-grupos" class="rounded-md border border-amber-200 bg-amber-50 p-3">
+    <span class="label">Grupos que deben entregarlo</span>
+    <div class="grid gap-1 sm:grid-cols-3">
+      {% for g in grupos %}
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="grupos" value="{{ g.id }}" {% if g.id in d.grupos %}checked{% endif %}> {{ g.nombre }}</label>
+      {% else %}<p class="text-sm text-slate-500">No hay grupos activos. <a href="/admin/grupos">Crear grupos</a>.</p>{% endfor %}
+    </div>
+  </div>
+  <div class="flex gap-2"><button class="btn-primario">Guardar</button><a href="/admin/requisitos" class="btn-sec">Cancelar</a></div>
+</form>
+{% endblock %}

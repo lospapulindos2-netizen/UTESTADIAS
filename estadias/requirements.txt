@@ -1,0 +1,14 @@
+﻿fastapi==0.162.4
+uvicorn[standard]==0.54.0
+jinja2==3.1.6
+python-multipart==0.0.33
+sqlalchemy==2.1.8
+pymysql==1.2.4
+cryptography==50.0.2
+itsdangerous==2.2.0
+bcrypt==5.0.0
+alembic==1.20.1
+python-dotenv==1.2.4
+# pruebas
+pytest==9.2.0
+httpx==0.28.1

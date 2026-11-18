@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}{{ 'Editar alumno' if alumno else 'Nuevo alumno' }}{% endblock %}
+{% block contenido %}
+<a href="{{ '/admin/alumnos/' ~ alumno.id if alumno else '/admin/alumnos' }}" class="text-sm">← Volver</a>
+<h1 class="mb-5">{{ 'Editar alumno' if alumno else 'Nuevo alumno' }}</h1>
+
+<form method="post" class="card max-w-3xl space-y-5">
+  {{ m.csrf_input(csrf) }}
+  {% if error %}<div class="alerta-error !mb-0">{{ error }}</div>{% endif %}
+
+  <fieldset class="grid gap-4 sm:grid-cols-2">
+    <legend class="mb-2 text-sm font-semibold text-inst-800">Datos personales y académicos</legend>
+    <div class="sm:col-span-2"><label class="label" for="nombre">Nombre completo *</label>
+      <input class="input" id="nombre" name="nombre" required value="{{ d.nombre or '' }}"></div>
+    <div><label class="label" for="matricula">Matrícula *</label>
+      <input class="input" id="matricula" name="matricula" required value="{{ d.matricula or '' }}"></div>
+    <div><label class="label" for="carrera">Carrera *</label>
+      <input class="input" id="carrera" name="carrera" required value="{{ d.carrera or '' }}"></div>
+    <div><label class="label" for="email">Correo (usuario de acceso) *</label>
+      <input class="input" id="email" name="email" type="email" required value="{{ d.email or '' }}"></div>
+    <div><label class="label" for="telefono">Teléfono</label>
+      <input class="input" id="telefono" name="telefono" value="{{ d.telefono or '' }}"></div>
+  </fieldset>
+
+  <fieldset class="grid gap-4 sm:grid-cols-2">
+    <legend class="mb-2 text-sm font-semibold text-inst-800">Asignaciones</legend>
+    <div><label class="label" for="grupo_id">Grupo</label>
+      <select class="input" id="grupo_id" name="grupo_id">
+        <option value="0">Sin grupo</option>
+        {% for g in grupos %}<option value="{{ g.id }}" {% if g.id == d.grupo_id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+      </select>
+      <p class="ayuda">Define qué documentos específicos debe entregar.</p></div>
+    <div><label class="label" for="profesor_id">Profesor asesor</label>
+      <select class="input" id="profesor_id" name="profesor_id">
+        <option value="0">Sin asignar</option>
+        {% for p in profesores %}<option value="{{ p.id }}" {% if p.id == d.profesor_id %}selected{% endif %}>{{ p.nombre }}</option>{% endfor %}
+      </select>
+      <p class="ayuda">Solo este profesor podrá ver y revisar su proyecto.</p></div>
+  </fieldset>
+
+  <fieldset>
+    <legend class="mb-2 text-sm font-semibold text-inst-800">Acceso</legend>
+    <label class="label" for="password">{{ 'Nueva contraseña (opcional)' if alumno else 'Contraseña inicial (opcional)' }}</label>
+    <input class="input max-w-sm" id="password" name="password" type="text" autocomplete="new-password">
+    <p class="ayuda">{{ 'Déjala vacía para no cambiarla.' if alumno else 'Déjala vacía para generar una automática. Se mostrará una sola vez.' }}</p>
+  </fieldset>
+
+  <div class="flex gap-2">
+    <button class="btn-primario">Guardar</button>
+    <a href="{{ '/admin/alumnos/' ~ alumno.id if alumno else '/admin/alumnos' }}" class="btn-sec">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

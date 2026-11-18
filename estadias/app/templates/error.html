@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<div class="card mx-auto mt-16 max-w-lg text-center">
+  <h1 class="mb-2">{{ titulo }}</h1>
+  <p class="mb-5 text-slate-600">{{ detalle }}</p>
+  <a href="/" class="btn-primario">Volver al inicio</a>
+</div>
+{% endblock %}

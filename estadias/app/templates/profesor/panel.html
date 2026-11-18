@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Mis alumnos{% endblock %}
+{% block contenido %}
+<h1 class="mb-5">Mis alumnos asignados</h1>
+
+<div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+  <a href="/profesor" class="kpi"><span class="kpi-num">{{ total }}</span><span class="kpi-txt">Alumnos asignados</span></a>
+  <a href="/profesor?estado=en_revision" class="kpi"><span class="kpi-num text-sky-700">{{ conteo.en_revision }}</span><span class="kpi-txt">Pendientes de revisión</span></a>
+  <a href="/profesor?estado=correccion" class="kpi"><span class="kpi-num text-amber-600">{{ conteo.correccion + conteo.rechazado }}</span><span class="kpi-txt">Requieren correcciones</span></a>
+  <a href="/profesor?estado=aprobado" class="kpi"><span class="kpi-num text-emerald-700">{{ conteo.aprobado }}</span><span class="kpi-txt">Aprobados</span></a>
+</div>
+
+<div class="mb-3 flex flex-wrap items-center gap-2">
+  <input class="input max-w-xs" type="search" placeholder="Búsqueda rápida…" data-filtro="#tabla-prof">
+  {% if estado %}<a href="/profesor" class="btn-sec btn-sm">Quitar filtro: {{ ESTADOS.get(estado, 'Sin entrega') }}</a>{% endif %}
+  {% if conteo.sin_entrega %}<a href="/profesor?estado=sin_entrega" class="text-sm">{{ conteo.sin_entrega }} sin entrega</a>{% endif %}
+</div>
+<div class="tabla-wrap">
+  <table class="tabla" id="tabla-prof">
+    <thead><tr><th>Alumno</th><th>Grupo</th><th>Proyecto</th><th>Estado</th><th>Última entrega</th><th></th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for a, p in filas %}
+      <tr>
+        <td><div class="font-medium">{{ a.usuario.nombre }}</div><div class="text-xs text-slate-500">{{ a.matricula }} · {{ a.carrera }}</div></td>
+        <td>{{ a.grupo.nombre if a.grupo else '—' }}</td>
+        <td class="max-w-xs">{{ p.titulo if p else '—' }}</td>
+        <td>{{ m.estado(p.estado if p else 'pendiente') }}</td>
+        <td class="whitespace-nowrap text-slate-600">{{ (p.creado_en|fecha) ~ ' · v' ~ p.version if p else '—' }}</td>
+        <td class="text-right"><a href="/profesor/alumnos/{{ a.id }}" class="{{ 'btn-primario' if p and p.estado == 'en_revision' else 'btn-sec' }} btn-sm">{{ 'Revisar' if p and p.estado == 'en_revision' else 'Abrir' }}</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="py-8 text-center text-slate-500">{{ 'No hay alumnos con ese filtro.' if estado else 'Aún no tienes alumnos asignados.' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

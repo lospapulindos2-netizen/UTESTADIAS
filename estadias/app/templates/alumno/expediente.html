@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block titulo %}Mi expediente{% endblock %}
+{% block contenido %}
+<div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1>Mi expediente</h1>
+    <p class="text-sm text-slate-600">{{ a.usuario.nombre }} · {{ a.matricula }} · {{ a.carrera }} · {{ a.grupo.nombre if a.grupo else 'Sin grupo' }}</p>
+  </div>
+  <div class="w-64">{{ m.barra(exp.avance) }}<p class="text-right text-xs text-slate-500">{{ exp.contar('aprobado') }} de {{ exp.total }} aprobados</p></div>
+</div>
+<p class="mb-5 text-sm text-slate-600">Formatos aceptados: <b>PDF, JPG o PNG</b>, máximo <b>{{ settings.MAX_MB }} MB</b> por archivo.</p>
+
+{% for cat, items in exp.categorias %}
+<h2 class="mb-3 mt-6">{{ cat.nombre }}</h2>
+<div class="space-y-3">
+  {% for it in items %}
+  <div id="req-{{ it.requisito.id }}" class="card scroll-mt-4 {{ 'border-amber-300' if it.estado == 'correccion' }}">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2"><span class="font-semibold">{{ it.requisito.nombre }}</span>{{ m.estado(it.estado) }}</div>
+        {% if it.requisito.descripcion %}<p class="text-sm text-slate-500">{{ it.requisito.descripcion }}</p>{% endif %}
+        {% if it.ultima %}
+          <p class="mt-1 text-xs text-slate-500">Última entrega: {{ it.ultima.nombre_original }} · v{{ it.ultima.version }} · {{ it.ultima.creado_en|fecha }}</p>
+        {% endif %}
+      </div>
+      {% if it.ultima %}<div class="flex gap-1">{{ m.acciones_archivo('/archivos/entrega/' ~ it.ultima.id) }}</div>{% endif %}
+    </div>
+
+    {% if it.estado == 'correccion' and it.observacion %}
+      <div class="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><b>Qué corregir:</b> {{ it.observacion }}</div>
+    {% elif it.observacion %}
+      <div class="mt-3 rounded-md bg-slate-50 p-3 text-sm text-slate-700"><b>Observación:</b> {{ it.observacion }}</div>
+    {% endif %}
+
+    {% if it.estado != 'aprobado' %}
+    <form method="post" action="/alumno/requisitos/{{ it.requisito.id }}/entregar" enctype="multipart/form-data" class="mt-3 flex flex-wrap items-center gap-2" data-subida>
+      {{ m.csrf_input(csrf) }}
+      <input type="file" name="archivo" required accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+             class="block w-full min-w-0 max-w-sm text-sm file:mr-3 file:rounded-md file:border-0 file:bg-inst-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-inst-700 hover:file:bg-inst-100">
+      <button type="submit" class="btn-primario btn-sm">{{ 'Subir corrección' if it.estado == 'correccion' else ('Reemplazar archivo' if it.ultima else 'Subir archivo') }}</button>
+    </form>
+    {% endif %}
+
+    {% if it.historial|length > 1 %}
+    <details class="mt-3 text-sm">
+      <summary class="cursor-pointer text-inst-600">Historial ({{ it.historial|length }} versiones)</summary>
+      <ul class="mt-2 space-y-2">
+        {% for h in it.historial %}
+        <li class="rounded bg-slate-50 p-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span>v{{ h.version }} · {{ h.creado_en|fecha }} · {{ h.nombre_original }}</span>
+            <span class="flex items-center gap-2">{{ m.estado(h.estado) }}<a href="/archivos/entrega/{{ h.id }}" target="_blank" rel="noopener" class="text-xs">Ver</a></span>
+          </div>
+          {% for r in h.revisiones %}{% if r.observacion %}<div class="mt-1 text-xs text-slate-600">↳ {{ r.observacion }}</div>{% endif %}{% endfor %}
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card text-sm text-slate-500">Aún no hay documentos requeridos para ti. El encargado de estadías los configurará.</div>
+{% endfor %}
+{% endblock %}

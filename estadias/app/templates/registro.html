@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titulo %}Crear cuenta de prueba{% endblock %}
+{% block contenido %}
+<div class="mx-auto max-w-xl py-6">
+  <div class="mb-5 text-center">
+    <img src="/static/img/escudo.svg" alt="" class="mx-auto mb-3 h-14 w-14">
+    <h1>Crear cuenta de prueba</h1>
+    <p class="text-sm text-slate-500">{{ settings.APP_NOMBRE }} · {{ settings.INSTITUCION }}</p>
+  </div>
+
+  <div class="alerta border-amber-300 bg-amber-50 text-amber-900">
+    <b>Modo demostración.</b> Este registro existe solo para probar la plataforma.
+    En la versión final las cuentas las crea únicamente el encargado de estadías.
+  </div>
+
+  <form method="post" action="/registro" class="card space-y-5">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    {% if error %}<div class="alerta-error !mb-0">{{ error }}</div>{% endif %}
+
+    <div>
+      <span class="label">¿Qué tipo de cuenta quieres probar? *</span>
+      <div class="grid gap-2 sm:grid-cols-3">
+        {% for clave, texto in roles.items() %}
+        <label class="flex cursor-pointer items-start gap-2 rounded-md border border-slate-300 p-3 text-sm has-[:checked]:border-inst-500 has-[:checked]:bg-inst-50">
+          <input type="radio" name="rol" value="{{ clave }}" class="mt-0.5" {% if d.rol == clave %}checked{% endif %}>
+          <span><b>{{ texto }}</b><br>
+            <span class="text-xs text-slate-500">
+              {% if clave == 'alumno' %}Sube documentos y su proyecto.
+              {% elif clave == 'profesor' %}Revisa proyectos de sus alumnos.
+              {% else %}Revisa documentos y administra todo.{% endif %}
+            </span></span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="sm:col-span-2"><label class="label" for="nombre">Nombre completo *</label>
+        <input class="input" id="nombre" name="nombre" required value="{{ d.nombre or '' }}"></div>
+      <div class="sm:col-span-2"><label class="label" for="email">Correo (será tu usuario) *</label>
+        <input class="input" id="email" name="email" type="email" required autocomplete="username" value="{{ d.email or '' }}"></div>
+      <div><label class="label" for="password">Contraseña *</label>
+        <input class="input" id="password" name="password" type="password" required minlength="8" autocomplete="new-password">
+        <p class="ayuda">Mínimo 8 caracteres, con letras y números.</p></div>
+      <div><label class="label" for="confirmar">Confirmar contraseña *</label>
+        <input class="input" id="confirmar" name="confirmar" type="password" required autocomplete="new-password"></div>
+    </div>
+
+    <fieldset id="bloque-alumno" class="grid gap-4 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
+      <legend class="px-1 text-sm font-semibold text-inst-800">Datos de alumno (opcionales)</legend>
+      <div><label class="label" for="matricula">Matrícula</label>
+        <input class="input" id="matricula" name="matricula" value="{{ d.matricula or '' }}" placeholder="Se genera si la dejas vacía"></div>
+      <div><label class="label" for="carrera">Carrera</label>
+        <input class="input" id="carrera" name="carrera" value="{{ d.carrera or '' }}"></div>
+      <div><label class="label" for="grupo_id">Grupo</label>
+        <select class="input" id="grupo_id" name="grupo_id">
+          <option value="0">Sin grupo</option>
+          {% for g in grupos %}<option value="{{ g.id }}" {% if g.id == d.grupo_id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+        </select>
+        <p class="ayuda">Define qué documentos específicos te pedirán.</p></div>
+      <div><label class="label" for="profesor_id">Profesor asesor</label>
+        <select class="input" id="profesor_id" name="profesor_id">
+          <option value="0">Sin asignar</option>
+          {% for p in profesores %}<option value="{{ p.id }}" {% if p.id == d.profesor_id %}selected{% endif %}>{{ p.nombre }}</option>{% endfor %}
+        </select>
+        <p class="ayuda">Necesario para entregar el proyecto.</p></div>
+    </fieldset>
+
+    <button class="btn-primario w-full">Crear cuenta y entrar</button>
+    <p class="text-center text-sm">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+  </form>
+</div>
+{% endblock %}

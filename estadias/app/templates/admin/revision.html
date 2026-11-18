@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}Bandeja de revisión{% endblock %}
+{% block contenido %}
+<div class="mb-5">
+  <h1>Bandeja de revisión</h1>
+  <p class="text-sm text-slate-500">Documentos entregados que esperan dictamen, del más antiguo al más reciente.</p>
+</div>
+
+<form method="get" class="mb-4 flex flex-wrap gap-2">
+  <input class="input max-w-xs" type="search" name="q" value="{{ q }}" placeholder="Nombre o matrícula">
+  <select class="input max-w-[12rem]" name="grupo">
+    <option value="0">Todos los grupos</option>
+    {% for g in grupos %}<option value="{{ g.id }}" {% if g.id == grupo %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+  </select>
+  <button class="btn-sec">Filtrar</button>
+</form>
+
+{% if entregas %}
+<div class="tabla-wrap">
+  <table class="tabla">
+    <thead><tr><th>Alumno</th><th>Documento</th><th>Versión</th><th>Entregado</th><th></th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for e in entregas %}
+      <tr>
+        <td><div class="font-medium">{{ e.alumno.usuario.nombre }}</div><div class="text-xs text-slate-500">{{ e.alumno.matricula }}</div></td>
+        <td>{{ e.requisito.nombre }}</td>
+        <td>v{{ e.version }}{% if e.version > 1 %} <span class="text-xs text-amber-700">(corrección)</span>{% endif %}</td>
+        <td class="whitespace-nowrap text-slate-600">{{ e.creado_en|fecha }}</td>
+        <td class="text-right"><a href="/admin/entregas/{{ e.id }}" class="btn-primario btn-sm">Revisar</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card text-center text-slate-500">No hay documentos pendientes de revisión. 🎉</div>
+{% endif %}
+{% endblock %}
