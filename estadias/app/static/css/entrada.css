@@ -56,5 +56,5 @@ progress.barra::-webkit-progress-bar { @apply rounded-full bg-slate-200; }
 progress.barra::-webkit-progress-value { @apply rounded-full bg-emerald-500; }
 progress.barra::-moz-progress-bar { @apply rounded-full bg-emerald-500; }
 
-dialog::backdrop { background: rgb(15 31 58 / 0.5); }
+dialog::backdrop { background: rgb(0 61 26 / 0.5); }
 .oculto { display: none !important; }
