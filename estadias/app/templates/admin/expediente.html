@@ -20,13 +20,13 @@
 
 <div class="mb-6 grid gap-4 md:grid-cols-3">
   <div class="card">
-    <div class="text-xs uppercase tracking-wide text-slate-500">Grupo</div>
+    <div class="text-xs text-slate-400">Grupo</div>
     <div class="text-lg font-semibold">{{ a.grupo.nombre if a.grupo else 'Sin grupo' }}</div>
-    <div class="mt-2 text-xs uppercase tracking-wide text-slate-500">Profesor asesor</div>
+    <div class="mt-2 text-xs text-slate-400">Profesor asesor</div>
     <div class="font-medium">{{ a.profesor.nombre if a.profesor else 'Sin asignar' }}</div>
   </div>
   <div class="card">
-    <div class="mb-1 text-xs uppercase tracking-wide text-slate-500">Avance documental</div>
+    <div class="mb-1 text-xs text-slate-400">Avance documental</div>
     {{ m.barra(exp.avance) }}
     <div class="mt-3 flex flex-wrap gap-1.5 text-xs">
       <span class="badge-verde">{{ exp.contar('aprobado') }} aprobados</span>
@@ -36,7 +36,7 @@
     </div>
   </div>
   <div class="card">
-    <div class="mb-1 text-xs uppercase tracking-wide text-slate-500">Proyecto de estadía</div>
+    <div class="mb-1 text-xs text-slate-400">Proyecto de estadía</div>
     {% if proyecto %}
       <div class="font-medium">{{ proyecto.titulo }}</div>
       <div class="mt-1 flex items-center gap-2 text-sm">{{ m.estado(proyecto.estado) }} <span class="text-slate-500">v{{ proyecto.version }} · {{ proyecto.creado_en|fecha('%d/%m/%Y') }}</span></div>

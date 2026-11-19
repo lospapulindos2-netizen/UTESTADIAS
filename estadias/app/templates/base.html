@@ -16,23 +16,23 @@
 <div class="md:flex">
   {% if usuario %}
   <!-- Barra superior móvil -->
-  <div class="flex items-center justify-between bg-inst-900 px-4 py-3 text-white md:hidden">
-    <span class="font-semibold">{{ settings.INSTITUCION_CORTA }} · {{ settings.APP_NOMBRE }}</span>
-    <button type="button" data-menu class="rounded border border-inst-500 px-2 py-1 text-sm">Menú</button>
+  <div class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:hidden">
+    <span class="font-semibold text-inst-800">{{ settings.INSTITUCION_CORTA }} · {{ settings.APP_NOMBRE }}</span>
+    <button type="button" data-menu class="rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Menú</button>
   </div>
 
   <!-- Menú lateral -->
-  <aside id="lateral" class="hidden w-full shrink-0 bg-inst-900 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col">
-    <div class="hidden border-b border-inst-700 px-5 py-5 md:block">
+  <aside id="lateral" class="hidden w-full shrink-0 border-b border-slate-200 bg-white md:sticky md:border-b-0 md:border-r md:top-0 md:flex md:h-screen md:w-64 md:flex-col">
+    <div class="hidden px-5 pb-4 pt-6 md:block">
       <div class="flex items-center gap-3">
-        <img src="/static/img/escudo.svg?v={{ VER }}" alt="{{ settings.INSTITUCION_CORTA }}" class="h-9 w-9">
+        <img src="/static/img/escudo.svg?v={{ VER }}" alt="{{ settings.INSTITUCION_CORTA }}" class="h-8 w-8">
         <div>
-          <div class="text-sm font-semibold leading-tight text-white">{{ settings.APP_NOMBRE }}</div>
-          <div class="text-xs leading-tight text-inst-200">{{ settings.INSTITUCION }}</div>
+          <div class="text-sm font-semibold leading-tight text-inst-800">{{ settings.APP_NOMBRE }}</div>
+          <div class="text-xs leading-tight text-slate-400">{{ settings.INSTITUCION }}</div>
         </div>
       </div>
     </div>
-    <nav class="flex-1 space-y-1 overflow-y-auto p-3">
+    <nav class="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
       {% if usuario.rol == 'admin' %}
         {{ enlace('/admin', 'Panel', True) }}
         {{ enlace('/admin/revision', 'Bandeja de revisión') }}
@@ -49,22 +49,22 @@
         {{ enlace('/profesor', 'Mis alumnos') }}
       {% endif %}
     </nav>
-    <div class="border-t border-inst-700 p-4 text-sm">
-      <div class="truncate font-medium text-white">{{ usuario.nombre }}</div>
-      <div class="mb-3 text-xs text-inst-200">{{ ROLES[usuario.rol] }}</div>
-      <div class="flex gap-2">
-        <a href="/cuenta/password" class="btn-sm btn border border-inst-500 text-inst-100 hover:bg-inst-700">Contraseña</a>
+    <div class="border-t border-slate-100 px-5 py-4 text-sm">
+      <div class="truncate font-medium text-slate-800">{{ usuario.nombre }}</div>
+      <div class="mb-2 text-xs text-slate-400">{{ ROLES[usuario.rol] }}</div>
+      <div class="flex gap-4 text-xs">
+        <a href="/cuenta/password" class="text-slate-500 no-underline hover:text-inst-700">Contraseña</a>
         <form method="post" action="/logout">
           <input type="hidden" name="_csrf" value="{{ csrf }}">
-          <button class="btn-sm btn border border-inst-500 text-inst-100 hover:bg-inst-700">Salir</button>
+          <button class="cursor-pointer text-slate-500 hover:text-inst-700">Salir</button>
         </form>
       </div>
     </div>
   </aside>
   {% endif %}
 
-  <main class="min-w-0 flex-1 px-4 py-6 md:px-8">
-    <div class="mx-auto max-w-7xl">
+  <main class="min-w-0 flex-1 px-4 py-8 md:px-12 md:py-10">
+    <div class="mx-auto max-w-6xl">
       {% for m in mensajes %}
         <div class="{{ 'alerta-error' if m.tipo == 'error' else 'alerta-ok' }}" role="status">{{ m.msg }}</div>
       {% endfor %}
@@ -73,12 +73,12 @@
   </main>
 </div>
 
-<dialog id="dlg-confirmar" class="w-[min(28rem,calc(100%-2rem))] rounded-lg p-0 shadow-xl">
+<dialog id="dlg-confirmar" class="w-[min(28rem,calc(100%-2rem))] rounded-xl border border-slate-200 p-0 shadow-lg">
   <div class="p-5">
     <h2 class="mb-2">Confirmar acción</h2>
     <p data-msg class="text-sm text-slate-600"></p>
   </div>
-  <div class="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
+  <div class="flex justify-end gap-2 px-5 pb-5">
     <button type="button" data-no class="btn-sec">Cancelar</button>
     <button type="button" data-si class="btn-primario">Confirmar</button>
   </div>
