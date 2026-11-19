@@ -17,7 +17,7 @@ def _req(db, nombre) -> Requisito:
 # 1. El administrador puede crear cuentas
 def test_01_admin_crea_cuentas(cliente, db):
     login_como(cliente, "admin")
-    g = db.scalar(select(Grupo).where(Grupo.nombre == "Grupo B"))
+    g = db.scalar(select(Grupo).where(Grupo.nombre == "IRIC71V"))
     r = cliente.post_form("/admin/alumnos/nuevo", {
         "nombre": "Nuevo Alumno", "email": "nuevo@estadias.test", "matricula": "N0001",
         "carrera": "Sistemas", "grupo_id": g.id, "profesor_id": 0, "password": "Clave1234",
@@ -66,12 +66,12 @@ def test_03_alumno_solo_su_expediente(cliente, db):
 
 # 4 y 5. Generales para todos; específicos solo para su grupo
 def test_04_05_requisitos_generales_y_especificos(cliente):
-    login_como(cliente, "alumno1")  # Grupo A
+    login_como(cliente, "alumno1")  # IRIC91V
     html_a = cliente.get("/alumno/expediente").text
     cliente.post_form("/logout")
-    login_como(cliente, "alumno3")  # Grupo B
+    login_como(cliente, "alumno3")  # IRIC71V
     html_b = cliente.get("/alumno/expediente").text
-    for general in ("Identificación oficial", "Comprobante de domicilio", "Historial académico", "Carta de aceptación"):
+    for general in ("Hoja Viajera", "Cartas de aceptación", "Carta de finalización", "Carta de presentación"):
         assert general in html_a and general in html_b
     assert "Convenio de estadía" in html_a and "Convenio de estadía" not in html_b
     assert "Seguro facultativo" in html_b and "Seguro facultativo" not in html_a
@@ -80,14 +80,14 @@ def test_04_05_requisitos_generales_y_especificos(cliente):
 # 6. El administrador agrega y modifica requisitos (sin desarrollador)
 def test_06_admin_agrega_y_modifica_requisitos(cliente, db):
     login_como(cliente, "admin")
-    g_c = db.scalar(select(Grupo).where(Grupo.nombre == "Grupo C"))
+    g_c = db.scalar(select(Grupo).where(Grupo.nombre == "IRIC11M"))
     cat = _req(db, "Convenio de estadía").categoria_id
     r = cliente.post_form("/admin/requisitos/nuevo", {
         "nombre": "Constancia de vigencia", "descripcion": "", "categoria_id": cat, "tipo": "especifico", "grupos": [g_c.id],
     })
     assert r.status_code == 303
     nuevo = _req(db, "Constancia de vigencia")
-    assert [g.nombre for g in nuevo.grupos] == ["Grupo C"]
+    assert [g.nombre for g in nuevo.grupos] == ["IRIC11M"]
     # modificarlo a general
     r = cliente.post_form(f"/admin/requisitos/{nuevo.id}/editar", {
         "nombre": "Constancia de vigencia de derechos", "descripcion": "IMSS", "categoria_id": cat, "tipo": "general",
@@ -102,7 +102,7 @@ def test_06_admin_agrega_y_modifica_requisitos(cliente, db):
 
 def test_06b_desactivar_requisito_conserva_historial(cliente, db):
     login_como(cliente, "admin")
-    req = _req(db, "Identificación oficial")
+    req = _req(db, "Hoja Viajera")
     a1 = _alumno(db, "A0001")
     antes = db.scalar(select(Entrega).where(Entrega.alumno_id == a1.id, Entrega.requisito_id == req.id))
     cliente.post_form(f"/admin/requisitos/{req.id}/estado")
@@ -115,7 +115,7 @@ def test_06b_desactivar_requisito_conserva_historial(cliente, db):
 # 7. Los archivos se cargan y se almacenan en el servidor (carpeta privada)
 def test_07_carga_y_almacenamiento(cliente, db):
     login_como(cliente, "alumno1")
-    req = _req(db, "Carta de aceptación")
+    req = _req(db, "Carta de presentación")
     r = cliente.post_form(f"/alumno/requisitos/{req.id}/entregar", files={"archivo": ("carta.pdf", PDF, "application/pdf")})
     assert r.status_code == 303
     e = db.scalar(select(Entrega).where(Entrega.requisito_id == req.id))
@@ -131,7 +131,7 @@ def test_07_carga_y_almacenamiento(cliente, db):
 
 def test_07b_rechaza_archivos_invalidos(cliente, db):
     login_como(cliente, "alumno1")
-    req = _req(db, "Carta de aceptación")
+    req = _req(db, "Carta de presentación")
     casos = [
         ("virus.exe", b"MZ\x90\x00", "application/octet-stream"),       # extensión no permitida
         ("falso.pdf", b"MZ\x90\x00 no soy pdf", "application/pdf"),      # extensión engañosa
@@ -177,9 +177,9 @@ def test_09_admin_revisa_documentos(cliente, db):
 # 10. El alumno consulta observaciones y corrige
 def test_10_alumno_ve_observacion_y_corrige(cliente, db):
     login_como(cliente, "alumno1")
-    req = _req(db, "Comprobante de domicilio")  # en «correccion» según la semilla
+    req = _req(db, "Cartas de aceptación")  # en «correccion» según la semilla
     html = cliente.get("/alumno/expediente").text
-    assert "más de 3 meses" in html
+    assert "Falta la firma" in html
     r = cliente.post_form(f"/alumno/requisitos/{req.id}/entregar", files={"archivo": ("comprobante.pdf", PDF, "application/pdf")})
     assert r.status_code == 303
     versiones = db.scalars(select(Entrega).where(Entrega.requisito_id == req.id).order_by(Entrega.version)).all()
@@ -189,7 +189,7 @@ def test_10_alumno_ve_observacion_y_corrige(cliente, db):
 
 def test_10b_no_reemplaza_documento_aprobado(cliente, db):
     login_como(cliente, "alumno1")
-    req = _req(db, "Identificación oficial")  # aprobado en la semilla
+    req = _req(db, "Hoja Viajera")  # aprobado en la semilla
     cliente.post_form(f"/alumno/requisitos/{req.id}/entregar", files={"archivo": ("x.pdf", PDF, "application/pdf")})
     assert len(db.scalars(select(Entrega).where(Entrega.requisito_id == req.id, Entrega.alumno_id == _alumno(db, "A0001").id)).all()) == 1
 

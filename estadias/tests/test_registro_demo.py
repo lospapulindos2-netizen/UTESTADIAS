@@ -34,7 +34,7 @@ def test_registro_por_rol_y_entra(cliente, db, demo, rol, inicio):
 
 
 def test_registro_alumno_con_grupo_ve_sus_requisitos(cliente, db, demo):
-    g = db.scalar(select(Grupo).where(Grupo.nombre == "Grupo B"))
+    g = db.scalar(select(Grupo).where(Grupo.nombre == "IRIC71V"))
     _registrar(cliente, email="demo.b@estadias.test", rol="alumno", grupo_id=g.id, matricula="")
     a = db.scalar(select(Alumno).join(Usuario, Alumno.usuario_id == Usuario.id).where(Usuario.email == "demo.b@estadias.test"))
     assert a.matricula.startswith("DEMO") and a.grupo_id == g.id

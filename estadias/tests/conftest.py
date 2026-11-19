@@ -26,6 +26,24 @@ from scripts import semilla  # noqa: E402
 CSRF_RE = re.compile(r'name="_csrf" value="([^"]+)"')
 
 
+def _requisitos_especificos():
+    """La semilla solo trae documentos generales; para probar la regla de
+    documentos por grupo se agregan dos específicos solo en las pruebas."""
+    from sqlalchemy import select
+
+    from app.models import TIPO_ESPECIFICO, Categoria, Grupo, Requisito
+
+    s = SessionLocal()
+    cat = s.scalar(select(Categoria).where(Categoria.nombre == "Documentación administrativa"))
+    g = {x.nombre: x for x in s.scalars(select(Grupo))}
+    s.add_all([
+        Requisito(categoria=cat, nombre="Convenio de estadía", tipo=TIPO_ESPECIFICO, grupos=[g["IRIC91V"]]),
+        Requisito(categoria=cat, nombre="Seguro facultativo", tipo=TIPO_ESPECIFICO, grupos=[g["IRIC71V"]]),
+    ])
+    s.commit()
+    s.close()
+
+
 @pytest.fixture()
 def db_limpia():
     Base.metadata.drop_all(engine)
@@ -33,6 +51,7 @@ def db_limpia():
     shutil.rmtree(_TMP / "privado", ignore_errors=True)
     security._INTENTOS.clear()
     semilla.main()
+    _requisitos_especificos()
     yield
     engine.dispose()
 

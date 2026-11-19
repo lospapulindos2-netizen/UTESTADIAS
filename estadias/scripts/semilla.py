@@ -17,8 +17,7 @@ from app.models import (
     ROL_ADMIN,
     ROL_ALUMNO,
     ROL_PROFESOR,
-    TIPO_ESPECIFICO,
-    TIPO_GENERAL,
+        TIPO_GENERAL,
     Alumno,
     Categoria,
     Entrega,
@@ -38,10 +37,10 @@ USUARIOS_PRUEBA = {
 }
 ALUMNOS_PRUEBA = [
     # nombre, email, matrícula, carrera, grupo, profesor
-    ("Alumno A Uno (prueba)", "alumno1@estadias.test", "A0001", "Ingeniería en Sistemas", "Grupo A", "profesor1"),
-    ("Alumno A Dos (prueba)", "alumno2@estadias.test", "A0002", "Ingeniería en Sistemas", "Grupo A", "profesor1"),
-    ("Alumno B Uno (prueba)", "alumno3@estadias.test", "B0001", "Ingeniería Industrial", "Grupo B", "profesor2"),
-    ("Alumno C Uno (prueba)", "alumno4@estadias.test", "C0001", "Administración", "Grupo C", None),
+    ("Alumno A Uno (prueba)", "alumno1@estadias.test", "A0001", "Ingeniería en Sistemas", "IRIC91V", "profesor1"),
+    ("Alumno A Dos (prueba)", "alumno2@estadias.test", "A0002", "Ingeniería en Sistemas", "IRIC91V", "profesor1"),
+    ("Alumno B Uno (prueba)", "alumno3@estadias.test", "B0001", "Ingeniería Industrial", "IRIC71V", "profesor2"),
+    ("Alumno C Uno (prueba)", "alumno4@estadias.test", "C0001", "Administración", "IRIC11M", None),
 ]
 PASSWORD_ALUMNO = "Alumno2026"
 
@@ -90,25 +89,19 @@ def main(forzar: bool = False) -> None:
         u[clave] = Usuario(nombre=nombre, email=email, password_hash=hash_password(pw), rol=rol)
         db.add(u[clave])
 
-    grupos = {n: Grupo(nombre=n, descripcion=d) for n, d in [
-        ("Grupo A", "Estadía en empresas de tecnología"),
-        ("Grupo B", "Estadía en sector industrial"),
-        ("Grupo C", "Estadía en sector servicios"),
-    ]}
+    grupos = {n: Grupo(nombre=n) for n in ["IRIC91V", "IRIC71V", "IRIC11M"]}
     db.add_all(grupos.values())
 
     cats = {n: Categoria(nombre=n, orden=i) for i, n in enumerate(
-        ["Documentación personal", "Documentación académica", "Documentación empresarial", "Documentación administrativa"], 1)}
+        ["Documentación administrativa", "Documentación empresarial"], 1)}
     db.add_all(cats.values())
     db.flush()
 
     reqs = [
-        Requisito(categoria=cats["Documentación personal"], nombre="Identificación oficial", descripcion="INE o pasaporte vigente, por ambos lados.", tipo=TIPO_GENERAL),
-        Requisito(categoria=cats["Documentación personal"], nombre="Comprobante de domicilio", descripcion="No mayor a 3 meses.", tipo=TIPO_GENERAL),
-        Requisito(categoria=cats["Documentación académica"], nombre="Historial académico", tipo=TIPO_GENERAL),
-        Requisito(categoria=cats["Documentación empresarial"], nombre="Carta de aceptación", descripcion="Firmada y sellada por la empresa.", tipo=TIPO_GENERAL),
-        Requisito(categoria=cats["Documentación administrativa"], nombre="Convenio de estadía", tipo=TIPO_ESPECIFICO, grupos=[grupos["Grupo A"]]),
-        Requisito(categoria=cats["Documentación administrativa"], nombre="Seguro facultativo", tipo=TIPO_ESPECIFICO, grupos=[grupos["Grupo B"]]),
+        Requisito(categoria=cats["Documentación administrativa"], nombre="Hoja Viajera", tipo=TIPO_GENERAL),
+        Requisito(categoria=cats["Documentación empresarial"], nombre="Cartas de aceptación", descripcion="Firmadas y selladas por la empresa.", tipo=TIPO_GENERAL),
+        Requisito(categoria=cats["Documentación empresarial"], nombre="Carta de finalización", tipo=TIPO_GENERAL),
+        Requisito(categoria=cats["Documentación empresarial"], nombre="Carta de presentación", tipo=TIPO_GENERAL),
     ]
     db.add_all(reqs)
     db.flush()
@@ -131,12 +124,12 @@ def main(forzar: bool = False) -> None:
         db.flush()
         return e
 
-    e = entrega(a1, reqs[0], 1, APROBADO, "Identificacion oficial - ejemplo")
+    e = entrega(a1, reqs[0], 1, APROBADO, "Hoja viajera - ejemplo")
     db.add(Revision(entrega=e, revisor=u["admin"], resultado=APROBADO, observacion="Correcto."))
-    e = entrega(a1, reqs[1], 1, CORRECCION, "Comprobante de domicilio - ejemplo antiguo")
-    db.add(Revision(entrega=e, revisor=u["admin"], resultado=CORRECCION, observacion="El comprobante tiene más de 3 meses; sube uno reciente."))
-    entrega(a1, reqs[2], 1, EN_REVISION, "Historial academico - ejemplo")
-    entrega(alumnos[2], reqs[0], 1, EN_REVISION, "Identificacion oficial B - ejemplo")
+    e = entrega(a1, reqs[1], 1, CORRECCION, "Cartas de aceptacion - ejemplo sin firma")
+    db.add(Revision(entrega=e, revisor=u["admin"], resultado=CORRECCION, observacion="Falta la firma de la empresa; sube las cartas firmadas."))
+    entrega(a1, reqs[2], 1, EN_REVISION, "Carta de finalizacion - ejemplo")
+    entrega(alumnos[2], reqs[0], 1, EN_REVISION, "Hoja viajera B - ejemplo")
 
     ruta, tam = guardar_pdf(f"proyectos/{a1.id}", "Proyecto de estadia - version 1")
     db.add(ProyectoEntrega(alumno=a1, version=1, titulo="Sistema de control de inventarios", ruta=ruta,

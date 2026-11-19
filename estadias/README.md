@@ -75,10 +75,10 @@ Los crea `python -m scripts.semilla` (solo para pruebas locales; cámbialos o de
 | Administrador | admin@estadias.test | Admin2026 |
 | Profesor 1 (asesora a A0001 y A0002) | profesor1@estadias.test | Profesor2026 |
 | Profesor 2 (asesora a B0001) | profesor2@estadias.test | Profesor2026 |
-| Alumno Grupo A (con entregas de ejemplo) | alumno1@estadias.test | Alumno2026 |
-| Alumno Grupo A | alumno2@estadias.test | Alumno2026 |
-| Alumno Grupo B | alumno3@estadias.test | Alumno2026 |
-| Alumno Grupo C (sin profesor) | alumno4@estadias.test | Alumno2026 |
+| Alumno IRIC91V (con entregas de ejemplo) | alumno1@estadias.test | Alumno2026 |
+| Alumno IRIC91V | alumno2@estadias.test | Alumno2026 |
+| Alumno IRIC71V | alumno3@estadias.test | Alumno2026 |
+| Alumno IRIC11M (sin profesor) | alumno4@estadias.test | Alumno2026 |
 
 ## 6. Pruebas
 
