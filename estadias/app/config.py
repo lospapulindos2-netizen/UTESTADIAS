@@ -19,7 +19,8 @@ def _ruta(nombre: str, defecto: str) -> Path:
 
 class Settings:
     APP_NOMBRE: str = os.getenv("APP_NOMBRE", "Gestión de Estadías")
-    INSTITUCION: str = os.getenv("INSTITUCION", "[Nombre de la universidad]")
+    INSTITUCION: str = os.getenv("INSTITUCION", "Universidad Tecnológica de Parral")
+    INSTITUCION_CORTA: str = os.getenv("INSTITUCION_CORTA", "UTP")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",

@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block titulo %}{{ settings.APP_NOMBRE }}{% endblock %} · {{ settings.APP_NOMBRE }}</title>
+  <title>{% block titulo %}{{ settings.APP_NOMBRE }}{% endblock %} · {{ settings.APP_NOMBRE }} {{ settings.INSTITUCION_CORTA }}</title>
   <link rel="stylesheet" href="/static/css/app.css?v={{ VER }}">
-  <link rel="icon" href="/static/img/escudo.svg">
+  <link rel="icon" href="/static/img/escudo.svg?v={{ VER }}">
 </head>
 <body class="min-h-screen">
 {% macro enlace(url, texto, exacto=False) -%}
@@ -17,7 +17,7 @@
   {% if usuario %}
   <!-- Barra superior móvil -->
   <div class="flex items-center justify-between bg-inst-900 px-4 py-3 text-white md:hidden">
-    <span class="font-semibold">{{ settings.APP_NOMBRE }}</span>
+    <span class="font-semibold">{{ settings.INSTITUCION_CORTA }} · {{ settings.APP_NOMBRE }}</span>
     <button type="button" data-menu class="rounded border border-inst-500 px-2 py-1 text-sm">Menú</button>
   </div>
 
@@ -25,7 +25,7 @@
   <aside id="lateral" class="hidden w-full shrink-0 bg-inst-900 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:flex-col">
     <div class="hidden border-b border-inst-700 px-5 py-5 md:block">
       <div class="flex items-center gap-3">
-        <img src="/static/img/escudo.svg" alt="" class="h-9 w-9">
+        <img src="/static/img/escudo.svg?v={{ VER }}" alt="{{ settings.INSTITUCION_CORTA }}" class="h-9 w-9">
         <div>
           <div class="text-sm font-semibold leading-tight text-white">{{ settings.APP_NOMBRE }}</div>
           <div class="text-xs leading-tight text-inst-200">{{ settings.INSTITUCION }}</div>
